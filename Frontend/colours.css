@@ -1,0 +1,8 @@
+:root {
+    --item-border-colour: grey;
+
+    --primary: hsl(20, 91%, 64%);
+    --secondary: hsl(205, 100%, 65%);
+    --text: hsl(240, 8%, 10%);
+    --background: hsl(35, 100%, 98%);
+}
