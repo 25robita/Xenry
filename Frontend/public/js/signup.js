@@ -145,60 +145,32 @@ signupButton.addEventListener("click", () => {
 
     if (!username.value) {
         reportError(username, "Please enter a username", "empty");
-
-        // username.setAttribute("aria-invalid", "true"); // styles everything
-        // username.setAttribute("data-errorreason", "empty")
-
-        // document.getElementById(username.getAttribute("aria-errormessage")).textContent = "Please enter a username"
-
         return;
     }
 
     if (!displayName.value) {
         reportError(displayName, "Please enter a display name");
-        // displayName.setAttribute("aria-invalid", "true");
-        // document.getElementById(displayName.getAttribute("aria-errormessage")).textContent = "Please enter a display name"
-
         return;
     }
 
     if (!password.value) {
         reportError(password, "Please enter a password", "empty");
-        // password.setAttribute("aria-invalid", "true");
-        // password.setAttribute("data-errorreason", "empty")
-        // document.getElementById(password.getAttribute("aria-errormessage")).textContent = "Please enter a password"
-
         return;
     }
 
     if (!confirmPassword.value) {
         reportError(confirmPassword, "Please confirm your password", "empty");
-        // confirmPassword.setAttribute("aria-invalid", "true");
-        // confirmPassword.setAttribute("data-errorreason", "empty")
-        // document.getElementById(confirmPassword.getAttribute("aria-errormessage")).textContent = "Please confirm your password"
-
         return;
     }
 
     if (password.value.length < 8) {
         // according to NIST security, this is the only restriction we should impose
         reportError(password, "Passwords must be at least 8 characters", "short");
-
-        // password.setAttribute("aria-invalid", "true");
-        // password.setAttribute("data-errorreason", "short");
-
-        // document.getElementById(password.getAttribute("aria-errormessage")).textContent = "Passwords must be at least 8 characters"
-
         return;
     }
 
     if (password.value !== confirmPassword.value) {
         reportError(confirmPassword, "Passwords do not match", "mismatch");
-        // confirmPassword.setAttribute("aria-invalid", "true");
-        // confirmPassword.setAttribute("data-errorreason", "mismatch");
-
-        // document.getElementById(confirmPassword.getAttribute("aria-errormessage")).textContent = "Passwords do not match"
-
         return;
     }
 
@@ -229,12 +201,7 @@ signupButton.addEventListener("click", () => {
             // else, report the error
 
             reportError(username, "Username is taken", "alreadyexists");
-            // username.setAttribute("aria-invalid", "true");
-            // username.setAttribute("data-errorreason", "alreadyexists");
             takenUsernames.push(username.value);
-
-
-            // document.getElementById(username.getAttribute("aria-errormessage")).textContent = "Username is taken"
         })
 
 })
