@@ -12,6 +12,9 @@ const loginButton = document.getElementById("login")
 /** @type {HTMLButtonElement} */
 const signupButton = document.getElementById("signup")
 
+/** @type {NodeListOf<HTMLButtonElement>} */
+const showHidePWButtons = document.querySelectorAll(".password-field button")
+
 /** @type {string[]} array of usernames said to be already taken according to server responses */
 let takenUsernames = []
 
@@ -205,3 +208,28 @@ signupButton.addEventListener("click", () => {
         })
 
 })
+
+// show/hide password
+let visibilityTimeout;
+
+showHidePWButtons.forEach(button =>
+    button.addEventListener("click", () => {
+        // either button applies to both password fields
+        const pressed = button.getAttribute("aria-pressed") === "false";
+
+        showHidePWButtons.forEach(button => button.setAttribute("aria-pressed", pressed))
+
+        password.type = confirmPassword.type = pressed ? "text" : "password";
+
+        if (!visibilityTimeout) { // Hide password after 5 seconds for security
+            visibilityTimeout = setTimeout(() => {
+                button.click();
+                visibilityTimeout = undefined;
+            }, 5000);
+        } else {
+            clearTimeout(visibilityTimeout);
+            visibilityTimeout = undefined;
+        }
+
+    })
+)
