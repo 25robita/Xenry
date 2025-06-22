@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/25robita/xenry.git"
+  },
+  "author": "Luna Robinson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/25robita/xenry/issues"
+  },
+  "homepage": "https://github.com/25robita/xenry#readme",
+  "description": "",
+  "dependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/sqlite3": "^3.1.11",
+    "bcrypt": "^6.0.0",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3"
+  }
+}

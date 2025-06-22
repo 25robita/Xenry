@@ -1,0 +1,164 @@
+@import url(colours.css);
+@import url(font.css);
+
+
+html {
+    height: 100vh;
+    font-size: 16px;
+    color: var(--text);
+    background-color: var(--background);
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
+}
+
+main {
+    min-width: clamp(30ch, 30vw, 55ch);
+    min-height: 20rem;
+    display: grid;
+    grid-template-rows: 1fr min-content;
+}
+
+input {
+    font-size: 1rem;
+    padding: .8rem 1rem;
+    font-weight: 500;
+
+    border: 1px solid var(--item-border-colour);
+    border-radius: .25rem;
+}
+
+input[type=password]:not(:placeholder-shown) {
+    font-weight: 900;
+    letter-spacing: .1ch;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 2.5rem;
+
+    width: 100%;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    width: stretch;
+}
+
+.password-field button {
+    position: absolute;
+    right: .5rem;
+    top: .8rem;
+    bottom: .8rem;
+
+    padding: 0;
+    display: flex;
+    align-items: center;
+
+    background-color: transparent;
+    border: none;
+}
+
+.password-field button svg {
+    height: 75%;
+    fill: currentColor;
+    opacity: 75%;
+}
+
+.password-field button[aria-pressed="true"] .open {
+    display: none;
+}
+
+.password-field button[aria-pressed="false"] .closed {
+    display: none;
+}
+
+.fieldset>label:not(:first-child) {
+    margin-block-start: 1rem;
+}
+
+.fieldset {
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    justify-content: center;
+    grid-template-columns: 1fr;
+    padding: 3rem 2rem;
+    gap: .5rem;
+
+    border: 1px solid var(--item-border-colour);
+    border-radius: .25rem;
+}
+
+.login {
+    margin-block-end: 1rem;
+    background-color: white;
+}
+
+.buttonset {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    gap: .5rem;
+}
+
+button {
+    cursor: pointer;
+
+    padding: .8rem 1rem;
+    font-size: 1rem;
+
+    border: none;
+    border-radius: .25rem;
+    background-color: white;
+
+    font-weight: bold;
+
+    outline-offset: 3px;
+}
+
+button:hover,
+button:focus {
+    opacity: 90%;
+}
+
+button.primary {
+    background-color: var(--primary);
+}
+
+button.secondary {
+    background-color: var(--secondary);
+}
+
+button.alternative {
+    background-color: white;
+    color: var(--primary);
+    box-shadow: inset 0 0 0 3px currentColor;
+}
+
+button.alternative.secondary {
+    background-color: white;
+    color: var(--secondary);
+    box-shadow: inset 0 0 0 3px currentColor;
+}
+
+input[aria-invalid="true"] {
+    border-color: var(--error);
+    outline-color: var(--error);
+    background: hsl(0deg 100% 50% / 8%);
+}
+
+span[id^="error"] {
+    color: var(--error);
+    font-size: .7em;
+}
+
+span[id^="error"]:empty {
+    display: none;
+}
