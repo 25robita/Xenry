@@ -47,8 +47,15 @@ export function checkSession(req, db) {
                 console.warn(error);
                 return rej("cookie not found in db")
             }
-            // TODO: make cookie expiration actually work
-            console.log(row.expires)
+
+            // handle cookie expiration
+            if (new Date() > row.expires) {
+                // need to reauthenticate; use this as trigger to delete all out of date cookies
+
+                db.run("delete from user_sessions where expires < ?", + new Date()); // removes all out of date records
+
+                return rej("cookies out of date");
+            }
 
             // correct authentication, return authenticated user
 

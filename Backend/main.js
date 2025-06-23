@@ -4,12 +4,31 @@ import { resolve } from 'path';
 import { hash_password, getUUID, compare, checkSession } from './auth.js'
 
 const db = new sqlite3.Database("./Database/database.db");
+const COOKIE_EXPIRATION_LENGTH = 1000 * 60 * 60 * 24 * 30 // 30 days
 
 // prebuilt SQLite commands
 const getUser = db.prepare("select * from users where username = ?")
 
 const createNewUser = db.prepare("insert into users values (?, ?, ?, '')")
 const createSession = db.prepare("insert into user_sessions values (?, ?, ?)")
+
+
+/**
+ * 
+ * @param {string} username 
+ * @returns {string} session UUID
+ */
+function getNewSession(username) {
+    if (!username) {
+        console.error("Username not supplied to get new session");
+        return;
+    }
+
+    const uuid = getUUID();
+    const expires = (+ new Date()) + COOKIE_EXPIRATION_LENGTH
+    createSession.run(uuid, username, expires)
+    return uuid;
+}
 
 // Request app code
 
@@ -25,11 +44,8 @@ app.use(express.urlencoded({ extended: true }));
 // routes
 app.get('/', (req, res) => {
     checkSession(req, db)
-        .catch(() => {
-            // need to reauthenticate / auth for first time
-            res.redirect("/login");
-        })
         .then((username) => {
+            console.log(username);
             // if authentication succeeded
             // res.sendFile("Frontend/index.html", { root: "./" })
             getUser.get(username, (err, user) => {
@@ -40,6 +56,10 @@ app.get('/', (req, res) => {
 
                 res.send(user.display_name)
             })
+        })
+        .catch(() => {
+            // need to reauthenticate / auth for first time
+            res.redirect("/login");
         })
 })
 
@@ -74,15 +94,9 @@ app.post('/login', (req, res) => {
         if (compare(password, usersHash)) {
             // continue to authenticate
 
-            const uuid = getUUID()
-            const expires = new Date() + (30 * 1000 * 60 * 60 * 24) // 30 days after right now
-            // add session to db
-
-            createSession.run(uuid, username, expires);
-
             // give them the cookie
 
-            res.cookie("sesh", uuid, { maxAge: 30 * 1000 * 60 * 60 * 24 })
+            res.cookie("sesh", getNewSession(username), { maxAge: 30 * 1000 * 60 * 60 * 24 })
 
             // send them a success message: the client will redirect
             res.send({ "status": 200, "message": "successful login" });
@@ -129,16 +143,9 @@ app.post('/signup', (req, res) => {
         )
 
         // now we need to give the user an authentication session
+        // and give them the cookie
 
-        const uuid = getUUID()
-        const expires = new Date() + (30 * 1000 * 60 * 60 * 24) // 30 days after right now
-        // add session to db
-
-        createSession.run(uuid, username, expires);
-
-        // give them the cookie
-
-        res.cookie("sesh", uuid, { maxAge: 30 * 1000 * 60 * 60 * 24 })
+        res.cookie("sesh", getNewSession(username), { maxAge: COOKIE_EXPIRATION_LENGTH })
 
         // send them a success; the client will redirect
         res.send({ status: 200, message: "successful account creating" })

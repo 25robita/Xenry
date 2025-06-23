@@ -230,6 +230,5 @@ showHidePWButtons.forEach(button =>
             clearTimeout(visibilityTimeout);
             visibilityTimeout = undefined;
         }
-
     })
 )
