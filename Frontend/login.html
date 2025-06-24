@@ -15,11 +15,12 @@
         <section class="login fieldset">
             <label for="username">Username:</label>
             <input type="text" name="username" id="username" placeholder="Enter Username" autocomplete="username"
-                required>
+                required aria-errormessage="error-general error-username">
+            <span id="error-username"></span>
             <label for="password">Password:</label>
             <div class="password-field">
                 <input type="password" name="password" id="password" placeholder="Enter Password"
-                    autocomplete="current-password" required>
+                    autocomplete="current-password" required aria-errormessage="error-general error-password">
                 <button aria-pressed="false">
                     <!-- add svg -->
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1310.54 927.99">
@@ -46,6 +47,8 @@
                     </svg>
                 </button>
             </div>
+            <span id="error-password"></span>
+            <span id="error-general"></span>
         </section>
         <div class="buttonset">
             <button class="secondary alternative" id="signup">Sign up</button>

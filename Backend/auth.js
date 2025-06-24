@@ -44,7 +44,7 @@ export function checkSession(req, db) {
 
         db.get("select * from user_sessions where UUID = ?", sessionCookie, (error, row) => {
             if (error || !row) {
-                console.warn(error);
+                console.warn(error, "an error was encountered, or the row was empty");
                 return rej("cookie not found in db")
             }
 

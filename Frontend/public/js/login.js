@@ -31,21 +31,85 @@ showHidePWButton.addEventListener("click", () => {
     }
 })
 
+username.addEventListener("input", () => {
+    if (username.getAttribute("aria-invalid") == "false") return;
 
-loginButton.addEventListener("click", async () => {
+    switch (username.getAttribute("data-reason")) {
+        case "empty":
+            if (username.value.length == 0) return;
+            // clear error
+
+            username.setAttribute("aria-invalid", "false");
+            username.removeAttribute("data-reason");
+
+            document.getElementById("error-username").textContent = "";
+
+            break;
+        case "incorrect":
+            // just clear the error on any change (from both)
+
+            username.setAttribute("aria-invalid", "false");
+            username.removeAttribute("data-reason");
+
+            password.setAttribute("aria-invalid", "false");
+            password.removeAttribute("data-reason");
+
+            document.getElementById("error-general").textContent = "";
+            break;
+    }
+})
+
+password.addEventListener("input", () => {
+    if (password.getAttribute("aria-invalid") == "false") return;
+
+    switch (password.getAttribute("data-reason")) {
+        case "empty":
+            if (password.value.length == 0) return;
+            // clear error
+
+            password.setAttribute("aria-invalid", "false");
+            password.removeAttribute("data-reason");
+
+            document.getElementById("error-password").textContent = "";
+
+            break;
+        case "incorrect":
+            // just clear the error on any change (from both)
+
+            username.setAttribute("aria-invalid", "false");
+            username.removeAttribute("data-reason");
+
+            password.setAttribute("aria-invalid", "false");
+            password.removeAttribute("data-reason");
+
+            document.getElementById("error-general").textContent = "";
+            break;
+    }
+})
+
+
+loginButton.addEventListener("click", () => {
     // data validation
     if (!username.value) {
-        // TODO: error
+        username.setAttribute("aria-invalid", "true");
+        username.setAttribute("data-reason", "empty");
+        document.getElementById("error-username").textContent = "Please enter a username";
+
+        return;
     }
     if (!password.value) {
-        // error
+        password.setAttribute("aria-invalid", "true");
+        password.setAttribute("data-reason", "empty");
+        document.getElementById("error-password").textContent = "Please enter a password";
+
+        return;
     }
 
     // if either of those happened, return early (but allow both to happen)
 
     // send information to server
 
-    const response = await fetch("", {
+    fetch("", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -57,19 +121,25 @@ loginButton.addEventListener("click", async () => {
         }),
         credentials: "same-origin", // to accept the authentication cookie
     })
+        .then(response => {
+            if (response.status == 200) {
+                window.location.href = "/"
+                return;
+            }
 
-    if (response.status == 200) {
-        // TODO: redirect to '/'
+            // display error, assuming its an incorrect username/password
 
-        window.location.href = "/"
-        return;
-    }
+            username.setAttribute("aria-invalid", "true");
+            username.setAttribute("data-reason", "incorrect");
+            password.setAttribute("aria-invalid", "true");
+            password.setAttribute("data-reason", "incorrect");
 
-    const body = response.json();
+            document.getElementById("error-general").textContent = "Incorrect username or password";
 
-    // TODO: display error
-    console.log(body);
+        }).catch(error => {
 
+
+        })
 })
 
 signupButton.addEventListener("click", () => {
