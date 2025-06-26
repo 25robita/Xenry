@@ -1,0 +1,130 @@
+@import url("colours.css");
+@import url("font.css");
+/* Common styling, for all pages when a user is logged in (navbar, etc.) */
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    color: var(--text);
+}
+
+body {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+}
+
+nav {
+    padding: 1rem;
+
+    background-color: var(--primary);
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+nav ul {
+    list-style-type: none;
+    margin-block: 0;
+    padding-inline-start: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: .5rem;
+}
+
+nav li {
+    width: 100%;
+    display: grid;
+    place-items: center;
+}
+
+nav li.end {
+    justify-self: flex-end;
+}
+
+nav li svg {
+    fill: white;
+    width: 90%;
+    height: 3rem;
+}
+
+main {
+    background-color: var(--background);
+}
+
+.content {
+    padding: 1rem 2rem;
+}
+
+.card {
+    background: white;
+    padding: 1.5rem 1rem;
+    border-radius: 1rem;
+    /* max-width: 40ch; */
+    box-shadow: 0px 0 .5rem 0px #00000030;
+
+    color: inherit;
+    text-decoration: inherit;
+}
+
+.card h3 {
+    margin-block-start: 0;
+    margin-block-end: 1rem;
+}
+
+.card p {
+    margin-block: 0;
+}
+
+.project-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(35ch, 1fr));
+    gap: 2rem;
+}
+
+.card.add-project {
+    text-align: center;
+    color: var(--text-grey);
+    background: var(--background-grey);
+}
+
+.card.add-project [data-svg="add"] {
+    height: 8rem;
+}
+
+.card.add-project [data-svg="add"] svg {
+    width: 100%;
+    height: 100%;
+
+    fill: currentColor;
+}
+
+button.add-project {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    width: 3rem;
+}
+
+button.add-project svg {
+    width: 100%;
+    height: 100%;
+
+    fill: currentColor;
+}
+
+.split-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+button {
+    color: inherit;
+}

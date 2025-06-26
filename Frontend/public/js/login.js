@@ -19,11 +19,14 @@ showHidePWButton.addEventListener("click", () => {
     showHidePWButton.setAttribute("aria-pressed", pressed)
     password.setAttribute("type", pressed ? "text" : "password");
 
+    if (pressed)
+        look(Math.random() > 0.5 ? -2 : 2, -1)
 
     if (!visibilityTimeout) { // Hide password after 5 seconds for security
         visibilityTimeout = setTimeout(() => {
             showHidePWButton.click();
             visibilityTimeout = undefined;
+            resetLook();
         }, 5000);
     } else {
         clearTimeout(visibilityTimeout);
@@ -146,3 +149,28 @@ signupButton.addEventListener("click", () => {
     // see if can autocomplete the existing stufff
     window.location.href = "/signup"
 })
+
+
+// Updog code
+
+username.addEventListener("focus", () => {
+    if (visibilityTimeout) return
+    look(0, 2);
+})
+
+username.addEventListener("focusout", () => {
+    if (visibilityTimeout) return
+    resetLook()
+})
+
+password.addEventListener("focus", () => {
+    if (visibilityTimeout) return
+    // randomise which side updog looks towards
+    look((Math.random() > .5 ? -1 : 1) * 2, -1);
+})
+
+password.addEventListener("focusout", () => {
+    if (visibilityTimeout) return
+    resetLook()
+})
+

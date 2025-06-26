@@ -6,12 +6,51 @@ import { hash_password, getUUID, compare, checkSession } from './auth.js'
 const db = new sqlite3.Database("./Database/database.db");
 const COOKIE_EXPIRATION_LENGTH = 1000 * 60 * 60 * 24 * 30 // 30 days
 
+// MASSIVE TODO: all my db row unpacks are dumb and stupid rows are objects not arrays
+
 // prebuilt SQLite commands
 const getUser = db.prepare("select * from users where username = ?")
 
 const createNewUser = db.prepare("insert into users values (?, ?, ?, '')")
 const createSession = db.prepare("insert into user_sessions values (?, ?, ?)")
 
+const getProject = db.prepare("select * from projects where UUID = ?")
+const getProjectsByUser = db.prepare("select * from projects where owner_username = ?")
+const getTasksByProject = db.prepare("select * from tasks where project_UUID = ?")
+const getDependencyByFrom = db.prepare("select * from dependencies where from_task_UUID = ?")
+const getDependencyByTo = db.prepare("select * from dependencies where to_task_UUID = ?")
+const getExcludedTimePeriods = db.prepare("select * from excluded_time_periods where project_UUID = ?")
+
+const createProject = db.prepare("insert into projects values (?, ?, ?, ?, ?)")
+
+/**
+ * 
+ * @param {sqlite3.Statement} preparedStatement 
+ * @param {"get" | "all" | "run"} reqType 
+ * @param  {...string} args 
+ * @returns {Promise<any[], any>}
+ */
+function dbPromise(preparedStatement, reqType, ...args) {
+    return new Promise((res, rej) => {
+        function listener(error, result) {
+            if (!result || error) return rej(error);
+
+            res(result);
+        }
+
+        switch (reqType) {
+            case "get":
+                preparedStatement.get(args, listener)
+                break;
+            case "all":
+                preparedStatement.all(args, listener)
+                break;
+            case "run":
+                preparedStatement.run(args, listener);
+                break;
+        }
+    })
+}
 
 /**
  * 
@@ -30,6 +69,26 @@ function getNewSession(username) {
     return uuid;
 }
 
+/**
+ * 
+ * @param {string} name 
+ * @param {string} description 
+ * @param {string} ownerUsername 
+ * @returns 
+ */
+function getNewProject(name, description, ownerUsername) {
+    if (!name || description == undefined) {
+        console.error("name or description of new project not given")
+        return;
+    }
+
+    const uuid = getUUID();
+
+    createProject.run(uuid, ownerUsername, name, description, "-------")
+
+    return uuid;
+}
+
 // Request app code
 
 const app = express()
@@ -45,17 +104,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     checkSession(req, db)
         .then((username) => {
-            console.log(username);
             // if authentication succeeded
-            // res.sendFile("Frontend/index.html", { root: "./" })
-            getUser.get(username, (err, user) => {
-                if (err) {
-                    res.sendFile("Frontend/index.html", { root: "./" })
-                    return;
-                }
-
-                res.send(user.display_name)
-            })
+            res.sendFile("Frontend/index.html", { root: "./" })
         })
         .catch(() => {
             // need to reauthenticate / auth for first time
@@ -70,7 +120,6 @@ app.get('/login', (req, res) => {
 })
 
 
-// TODO: all these error responses really need to be actual webpages, or the success ones need to be success thingies
 app.post('/login', (req, res) => {
     if (!req.body || !req.body.username || !req.body.password) {
         res.status(400).send({
@@ -149,6 +198,189 @@ app.post('/signup', (req, res) => {
 
         // send them a success; the client will redirect
         res.send({ status: 200, message: "successful account creating" })
+    })
+
+})
+
+app.get('/api/project/:uuid', (req, res) => {
+    // includes all tasks, dependencies and excluded time periods
+
+    const projectUUID = req.params.uuid;
+
+    checkSession(req, db).then(authenticatedUsername => {
+        Promise.all([
+            dbPromise(getProject, "get", projectUUID),
+            dbPromise(getTasksByProject, "all", projectUUID),
+            dbPromise(getExcludedTimePeriods, "all", projectUUID)
+        ]).then(([project, tasks, timePeriods]) => {
+            const {
+                owner_username: ownerUsername,
+                name: projectName,
+                description: projectDescription,
+                excluded_days: excludedDays
+            } = project;
+
+
+            if (ownerUsername != authenticatedUsername) {
+                // send error
+
+                res.status(403).send({
+                    "status": 403,
+                    "message": "Not your project"
+                })
+
+                return;
+            }
+
+            const projectObject = {
+                owner: ownerUsername,
+                name: projectName,
+                description: projectDescription,
+                excludedDays: [...excludedDays].map(i => i == "X"),
+                uuid: projectUUID,
+                tasks: [],
+                timePeriods: [],
+            }
+
+            for (const { start_date: startDate, end_date: endDate } of timePeriods) {
+                projectObject.timePeriods.push({
+                    startDate,
+                    endDate
+                });
+            }
+
+            /**@type {Promise<>[]} */
+            const promiseArray = []
+
+
+            for (const {
+                UUID,
+                name: taskName,
+                description: taskDescription,
+                duration_optimistic: durationOptimistic,
+                duration_normal: durationNormal,
+                duration_pessimistic: durationPessimistic,
+                start_date: taskStartDate,
+                completion: taskCompletion,
+                tag: taskTag,
+                colour: taskColour,
+                assigned_team_member: taskAssignedTeamMember,
+                is_milestone: taskIsMilestone
+            } of tasks) {
+
+                let task = {
+                    UUID,
+                    name: taskName,
+                    description: taskDescription,
+                    duration: {
+                        optimistic: durationOptimistic,
+                        normal: durationNormal,
+                        pessimistic: durationPessimistic
+                    },
+                    startDate: taskStartDate,
+                    completion: taskCompletion,
+                    tag: taskTag,
+                    colour: taskColour,
+                    assignedTeamMember: taskAssignedTeamMember,
+                    isMilestone: taskIsMilestone,
+                    dependentOn: [],
+                    dependencyOf: [],
+                }
+
+                projectObject.tasks.push(task)
+
+                promiseArray.push(dbPromise(getDependencyByFrom, "all", UUID).then((dependencies) => {
+                    for (const { to_UUID } of dependencies) {
+                        task.dependencyOf.push(to_UUID)
+                    }
+                }, () => { }))
+
+                promiseArray.push(dbPromise(getDependencyByTo, "all", UUID).then(dependencies => {
+                    for (const { from_UUID } of dependencies) {
+                        task.dependencyOf.push(from_UUID)
+                    }
+                }, () => { }))
+            }
+
+            Promise.all(promiseArray).then(() => {
+                // once all tasks have been populated
+
+                res.status(200).send(projectObject);
+            })
+        }, () => {
+            res.status(404).send({
+                status: 404,
+                message: "Project not found"
+            })
+        })
+
+    }, () => {
+        // send error
+
+        res.status(403).send({
+            status: 403,
+            message: "User not logged in"
+        })
+        return;
+    })
+
+
+
+    res.send('Hello World!')
+})
+
+app.post("/api/project", (req, res) => {
+    checkSession(req, db).then(authenticatedUsername => {
+        let name = "New Project";
+        let description = "";
+
+        if (req.body && req.body.name) {
+            name = req.body.name
+        }
+
+        if (req.body && req.body.description) {
+            description = req.body.description
+        }
+
+        const projectUUID = getNewProject(name, description, authenticatedUsername)
+
+        res.status(201).send({
+            status: 201,
+            message: "Created project",
+            UUID: projectUUID
+        })
+
+    }, () => {
+        res.status(403).send({
+            status: 403,
+            message: "Not authenticated"
+        })
+    })
+})
+
+app.get("/api/projects", (req, res) => {
+    checkSession(req, db).then(authenticatedUsername => {
+        dbPromise(getProjectsByUser, "all", authenticatedUsername).then(projects => {
+            const response = [];
+
+            for (const { UUID, name, description, excluded_days: excludedDays } of projects) {
+                response.push({
+                    UUID,
+                    name,
+                    description,
+                    excludedDays: excludedDays && [...excludedDays].map(i => i == "X")
+                })
+            }
+
+            res.status(200).send(response);
+
+        }, (err) => {
+            console.log("empty or error", err)
+            res.send([])
+        })
+
+    }, () => {
+        res.status(403).send("User not authenticated")
     })
 
 })

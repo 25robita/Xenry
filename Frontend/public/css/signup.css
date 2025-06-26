@@ -5,3 +5,17 @@ body {
 main {
     justify-self: right;
 }
+
+[data-svg="sidedog"] {
+    height: 20rem;
+
+}
+
+[data-svg="sidedog"] svg {
+    width: 100%;
+    height: 100%;
+}
+
+[data-svg="sidedog"] :is(.cls-3, .cls-4, .cls-5) {
+    fill: var(--primary);
+}

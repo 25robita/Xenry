@@ -3,8 +3,13 @@
 
     --primary: hsl(20, 91%, 64%);
     --secondary: hsl(205, 100%, 65%);
-    --text: hsl(240, 8%, 10%);
-    --background: hsl(35, 100%, 98%);
 
-    --error: red;
+    --text: hwb(240 9% 89%);
+    --text-light: hsl(240, 9%, 91%);
+    --text-grey: hsl(240, 2%, 55%);
+
+    --background: hsl(35, 100%, 98%);
+    --background-grey: hsl(36, 30%, 96%);
+
+    --error: hsl(1, 79%, 54%);
 }

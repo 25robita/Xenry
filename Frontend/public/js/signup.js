@@ -221,10 +221,14 @@ showHidePWButtons.forEach(button =>
 
         password.type = confirmPassword.type = pressed ? "text" : "password";
 
+        if (pressed)
+            look(1.5, -0.5)
+
         if (!visibilityTimeout) { // Hide password after 5 seconds for security
             visibilityTimeout = setTimeout(() => {
                 button.click();
                 visibilityTimeout = undefined;
+                resetLook();
             }, 5000);
         } else {
             clearTimeout(visibilityTimeout);
@@ -232,3 +236,29 @@ showHidePWButtons.forEach(button =>
         }
     })
 )
+
+// Updog code
+
+const focusListener = ({ target }) => {
+    if (visibilityTimeout) return;
+
+    if (target.name.includes("password")) {
+        look(1.5, Math.random() > 0.5 ? 0.5 : -0.5)
+    } else {
+        look(-1.5, 0);
+    }
+}
+
+const focusOutListener = () => {
+    if (!visibilityTimeout) resetLook();
+}
+
+username.addEventListener("focus", focusListener)
+displayName.addEventListener("focus", focusListener)
+password.addEventListener("focus", focusListener)
+confirmPassword.addEventListener("focus", focusListener)
+
+username.addEventListener("focusout", focusOutListener)
+displayName.addEventListener("focusout", focusOutListener)
+password.addEventListener("focusout", focusOutListener)
+confirmPassword.addEventListener("focusout", focusOutListener)
