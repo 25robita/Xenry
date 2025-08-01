@@ -6,10 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
+    <base href="/">
+
     <link rel="stylesheet" href="./public/css/main.css">
+    <script src="public/js/class.js"></script>
+    <script src="public/js/user.js"></script>
+    <script src="public/js/project.js"></script>
     <script src="public/js/render.js"></script>
     <script src="public/js/populateSVG.js" defer></script>
     <script src="public/js/index.js" defer></script>
+    <script src="public/js/loadProfilePhoto.js" defer></script>
+
 </head>
 
 <body>
@@ -28,28 +35,80 @@
 
         <ul>
             <li>
-                <a href="" data-svg="account"></a>
+                <a href="/profile" data-svg="account"></a>
             </li>
         </ul>
     </nav>
 
     <main>
-        <!-- <div class="content">
-            <div class="split-row">
-
-                <h2>User's projects:</h2>
-
-                <button class="add-project" data-svg="add" aria-label="Add Project"></button>
+        <!-- <aside class="sidebar" style="
+    background: white;
+    padding: .8rem 1.5rem;
+">
+            <div class="header-row">
+                <h3><input type="text" value="Task name"></h3>
+                <button class="svg-button" data-svg="delete"></button>
             </div>
 
-            <div class="project-list">
+            <div class="field">
 
-                <a class="card add-project" href="" aria-label="Add Project">
-                    <h3>Add Project</h3>
-                    <div data-svg="add"></div>
-                </a>
+                <label for="">Time Estimate (days):</label>
+                <div class="fieldset-row time-estimates">
+                    <div class="column">
+                        <label for="" title="Optimistic">O</label>
+                        <input type="number">
+                    </div>
+                    <div class="column">
+                        <label for="" title="Normal">M</label>
+                        <input type="number">
+                    </div>
+                    <div class="column">
+                        <label for="" title="Pessimistic">P</label>
+                        <input type="number">
+                    </div>
+                </div>
             </div>
-        </div> -->
+
+            <div class="field">
+                <label for="">Completion:</label>
+                <div class="range">
+                    <input type="range" name="" id="">
+                    <span class="value">50%</span>
+                </div>
+
+            </div>
+
+            <div class="fieldset-row">
+                <div class="column">
+                    <label for="">Start Date</label>
+                    <input type="date" name="" id="">
+                </div>
+                <div class="column">
+                    <label for="">End Date</label>
+                    <input type="date" name="" id="">
+                </div>
+            </div>
+
+            <div class="fieldset-row">
+                <div class="column">
+                    <label for="">Tag</label>
+                    <select name="" id="">
+                        <option value="">Option</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <label for="">Assignee</label>
+                    <select name="" id="">
+                        <option value="">Option</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <label for="">Colour</label>
+                    <input type="color" name="" id="">
+                </div>
+            </div>
+
+        </aside> -->
     </main>
 </body>
 

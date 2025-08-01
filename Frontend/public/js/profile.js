@@ -1,22 +1,98 @@
-/** @type {HTMLInputElement} */
-const username = document.getElementById("username")
+// this file handles input data from the profile page, as well as populating the data in the form it needs to wait for user data to be fetched
+
+const imageContainer = document.querySelector(".profile-image .image-container")
+
 /** @type {HTMLInputElement} */
 const displayNameInput = document.getElementById("displayname")
 /** @type {HTMLInputElement} */
-const password = document.getElementById("password")
+const usernameInput = document.getElementById("username")
+/** @type {HTMLInputElement} */
+const passwordInput = document.getElementById("password")
 /** @type {HTMLInputElement} */
 const confirmPasswordInput = document.getElementById("confirmpassword")
 
 /** @type {HTMLButtonElement} */
-const loginButton = document.getElementById("login")
+const editPFPButton = document.getElementById("pfp-pick-button");
+/** @type {HTMLInputElement} */
+const pfpPicker = document.getElementById("pfp-picker");
+
 /** @type {HTMLButtonElement} */
-const signupButton = document.getElementById("signup")
+const cancelButton = document.getElementById("cancel")
+/** @type {HTMLButtonElement} */
+const saveButton = document.getElementById("save")
+
+promiseUserData().then(() => {
+    // populates the user data
+    displayNameInput.value = globalUser.displayName;
+    usernameInput.value = globalUser.username;
+
+    if (globalUser.profilePicture !== "") {
+        const image = renderElement("img", imageContainer)
+
+        image.src = globalUser.profilePicture
+    }
+
+})
+
+// handle PFP input
+
+editPFPButton.addEventListener("click", () => {
+    // first, get a file from the user (then wait for the change event)
+
+    pfpPicker.click()
+})
+
+pfpPicker.addEventListener("change", () => {
+    // now that the file has been picked, load it as base64
+
+    const file = pfpPicker.files[0]
+
+    if (file.size > 5_242_880) { // restrict files to 5mb
+        // TODO: show error
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener("loadend", () => {
+        const blob = reader.result; // this is the base64 representation we've been looking for
+
+        // now, send this to the server
+
+        globalUser.updateProfilePhoto(blob);
+
+        // then update all the profile pictures on the page
+
+        const largeProfileImage = document.querySelector(".profile-image .image-container img");
+
+        if (!largeProfileImage) {
+            // need to create it
+            const image = renderElement("img", imageContainer)
+
+            image.src = globalUser.profilePicture
+        } else {
+            largeProfileImage.src = globalUser.profilePicture
+        }
+
+        const littleProfileImage = document.querySelector(".little-profile-image")
+
+        if (!littleProfileImage) {
+            // need to create it
+            const image = renderElement("img", profileButton, "little-profile-image")
+            image.src = globalUser.profilePicture;
+        } else {
+            littleProfileImage.src = globalUser.profilePicture;
+        }
+    })
+
+    reader.readAsDataURL(file);
+})
+
+
+// handling other input
 
 /** @type {NodeListOf<HTMLButtonElement>} */
 const showHidePWButtons = document.querySelectorAll(".password-field button")
-
-/** @type {string[]} array of usernames said to be already taken according to server responses */
-let takenUsernames = []
 
 /**
  *  
@@ -138,14 +214,8 @@ confirmPasswordInput.addEventListener("input", () => {
     }
 })
 
-loginButton.addEventListener("click", () => {
-    window.location.href = "/login"
-})
-
-
-function validateSignup() {
-    // first of all, if any inputs are still invalid, just return early
-    if (document.querySelector(".fieldset input[aria-invalid=true]")) return false;
+function validateChange() {
+    if (document.querySelector(".fieldset input[aria-invalid=true]")) return;
 
     if (!usernameInput.value) {
         reportError(usernameInput, "Please enter a username", "empty");
@@ -157,61 +227,27 @@ function validateSignup() {
         return false;
     }
 
-    if (!passwordInput.value) {
-        reportError(passwordInput, "Please enter a password", "empty");
-        return false;
-    }
-
-    if (!confirmPasswordInput.value) {
+    if (passwordInput.value && !confirmPasswordInput.value) {
         reportError(confirmPasswordInput, "Please confirm your password", "empty");
         return false;
     }
 
-    if (passwordInput.value.length < 8) {
+    if (passwordInput.value && passwordInput.value.length < 8) {
         // according to NIST security, this is the only restriction we should impose
         reportError(passwordInput, "Passwords must be at least 8 characters", "short");
         return false;
     }
 
-    if (passwordInput.value !== confirmPasswordInput.value) {
+    if (passwordInput.value && passwordInput.value !== confirmPasswordInput.value) {
         reportError(confirmPasswordInput, "Passwords do not match", "mismatch");
         return false;
     }
+
     return true;
 }
 
-signupButton.addEventListener("click", () => {
-    if (!validateSignup()) return;
-
-    // Now, all client-side validation has been completed. It is time to send this information to the server
-
-    fetch("", {
-        method: "POST",
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            username: usernameInput.value,
-            displayName: displayNameInput.value,
-            password: passwordInput.value
-        }),
-        credentials: "same-origin"
-    })
-        .then(response => {
-            if (response.status == 200) {
-                // all good, let's continue to '/'
-                window.location.href = "/"
-                return;
-            }
-
-
-            // else, report the error
-
-            reportError(usernameInput, "Username is taken", "alreadyexists");
-            takenUsernames.push(usernameInput.value);
-        })
-
+document.querySelector(".fieldset").addEventListener("input", () => {
+    saveButton.disabled = false;
 })
 
 // show/hide password
@@ -226,14 +262,10 @@ showHidePWButtons.forEach(button =>
 
         passwordInput.type = confirmPasswordInput.type = pressed ? "text" : "password";
 
-        if (pressed)
-            look(1.5, -0.5)
-
         if (!visibilityTimeout) { // Hide password after 5 seconds for security
             visibilityTimeout = setTimeout(() => {
                 button.click();
                 visibilityTimeout = undefined;
-                resetLook();
             }, 5000);
         } else {
             clearTimeout(visibilityTimeout);
@@ -242,28 +274,29 @@ showHidePWButtons.forEach(button =>
     })
 )
 
-// Updog code
 
-const focusListener = ({ target }) => {
-    if (visibilityTimeout) return;
+cancelButton.addEventListener("click", () => {
+    // redirect to homepage
+    window.location.href = "/"
+})
 
-    if (target.name.includes("password")) {
-        look(1.5, Math.random() > 0.5 ? 0.5 : -0.5)
-    } else {
-        look(-1.5, 0);
-    }
-}
+saveButton.addEventListener("click", () => {
+    // first, validate the changes
+    if (!validateChange()) return;
 
-const focusOutListener = () => {
-    if (!visibilityTimeout) resetLook();
-}
 
-usernameInput.addEventListener("focus", focusListener)
-displayNameInput.addEventListener("focus", focusListener)
-passwordInput.addEventListener("focus", focusListener)
-confirmPasswordInput.addEventListener("focus", focusListener)
+    // push changes to server
 
-usernameInput.addEventListener("focusout", focusOutListener)
-displayNameInput.addEventListener("focusout", focusOutListener)
-passwordInput.addEventListener("focusout", focusOutListener)
-confirmPasswordInput.addEventListener("focusout", focusOutListener)
+    if (displayNameInput.value !== globalUser.displayName)
+        globalUser.updateDisplayName(displayNameInput.value);
+    if (usernameInput.value !== globalUser.username)
+        globalUser.updateUsername(usernameInput.value); // TODO: handle case of taken username, dipslay error
+    if (passwordInput.value)
+        globalUser.updatePassword(passwordInput.value);
+
+    // reset form appearance
+    passwordInput.value = ""
+    confirmPasswordInput.value = ""
+
+})
+

@@ -12,4 +12,6 @@
     --background-grey: hsl(36, 30%, 96%);
 
     --error: hsl(1, 79%, 54%);
+
+    --graph-background: lightgrey;
 }
